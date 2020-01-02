@@ -1,1 +1,1 @@
-# videoparser
+# videoparser ClassDefinitionProcess
