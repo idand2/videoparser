@@ -8,6 +8,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 from PIL import Image
 from pathlib import Path
+import threading
+from socketserver import ThreadingMixIn
 
 BASE_PATH = r'D:\pycharm\videoparser'
 SERVER_IMAGES = BASE_PATH + '\\' + 'server_images'
@@ -25,7 +27,7 @@ def image_resize(imgpath):
 
 class S(BaseHTTPRequestHandler):
     def _set_response(self):
-        self.send_response(200)
+        self.send_response(200, )
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
@@ -63,6 +65,9 @@ def run(server_class=HTTPServer, handler_class=S, port=8090):
         pass
     # httpd.server_close()
     logging.info('Stopping httpd...\n')
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
 
 
 if __name__ == '__main__':

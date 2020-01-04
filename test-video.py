@@ -2,10 +2,18 @@
 import cv2
 import os
 import requests
+
 URL = 'http://localhost:8090'
+VIDEO_PATH = r'D:\Photo\Mufasa.mp4'
+
+def post_image(url, path):
+    files = {'media': open(path, 'rb')}
+    requests.post(url, files=files)
+
+
 def avi():
-# Read the video from specified path
-    cam = cv2.VideoCapture("D:\Photo\Mufasa.mp4")
+    # Read the video from specified path
+    cam = cv2.VideoCapture(VIDEO_PATH)
 
     try:
 
@@ -31,7 +39,8 @@ def avi():
             print('Creating...' + name)
 
             # writing the extracted images
-            cv2.imwrite(name, frame) # TODO: change to send image.
+            cv2.imwrite(name, frame)  # TODO: change to send image.
+            post_image(URL, name)
 
             # increasing counter so that it will
             # show how many frames are created
@@ -39,13 +48,8 @@ def avi():
         else:
             break
 
-    #Release all space and windows once done
+    # Release all space and windows once done
     cam.release()
     cv2.destroyAllWindows()
 
-def post_image(url):
-    files = {'media': open(r'D:\pycharm\videoparser\images\frame2.jpg', 'rb')}
-    requests.post(url, files=files)
-
-#avi()
-post_image(URL)
+avi()
