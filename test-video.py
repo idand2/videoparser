@@ -2,13 +2,22 @@
 import cv2
 import os
 import requests
+import time
+import asyncio
+import aiohttp
 
 URL = 'http://localhost:8090'
 VIDEO_PATH = r'D:\Photo\Mufasa.mp4'
+BASE_PATH = r'D:\pycharm\videoparser'
+IMAGES_PATH = BASE_PATH + '\\' + 'images'
 
-def post_image(url, path):
-    files = {'media': open(path, 'rb')}
-    requests.post(url, files=files)
+# for path, subddir, files in os.walk(args['folder']):
+#     for f_name in files:
+#         futures.append(send_file(path, f_name))
+
+
+
+
 
 
 def avi():
@@ -40,8 +49,6 @@ def avi():
 
             # writing the extracted images
             cv2.imwrite(name, frame)  # TODO: change to send image.
-            post_image(URL, name)
-
             # increasing counter so that it will
             # show how many frames are created
             currentframe += 1
@@ -52,4 +59,51 @@ def avi():
     cam.release()
     cv2.destroyAllWindows()
 
+
+# def async send_post
+
+
+start_time = time.time()
 avi()
+
+
+
+
+async def send_file(path1):
+    # url = args['url']
+    async with aiohttp.ClientSession() as session:
+        async with session.post(URL, data={
+            'file': open(path1, 'rb')
+        }) as response:
+            data = await response.text()
+            print(data)
+
+# async def post_image(url, path):
+#     files = {'media': open(path, 'rb')}
+#     requests.post(url, files=files)
+
+def set_future_right():
+    done_files = []
+    futures = []
+    images = os.listdir(IMAGES_PATH)
+    if len(images) == 0:
+        'congrats, we are done.'
+    else:
+        for i in images:
+            if len(futures) > 100:
+                break
+            else:
+                futures.append(send_file((IMAGES_PATH + '\\' + i)))
+                done_files.append(IMAGES_PATH + '\\' + i)
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.wait(futures))
+        print(done_files)
+        for ipath in done_files:
+            os.remove(ipath) #TODO : think about images.remove()
+        set_future_right()
+
+
+set_future_right()
+
+print("----completed in %s seconds" % (time.time() - start_time))
