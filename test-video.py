@@ -6,15 +6,7 @@ import time
 import asyncio
 import aiohttp
 from pathlib import Path
-
-# URL = 'http://localhost:8090'
-URL = 'http://localhost:8080'
-# URL = 'http://localhost:5000'
-VIDEO_PATH = r'D:\Photo\Mufasa.mp4'
-BASE_PATH = r'D:\pycharm\videoparser'
-IMAGES_PATH = BASE_PATH + '\\' + 'images'
-RESIZED_BACK = BASE_PATH + '\\' + 'Back'
-
+import
 
 # for path, subddir, files in os.walk(args['folder']):
 #     for f_name in files:
@@ -26,49 +18,44 @@ class VideoSpliter(object):
         self.video_path = video_path
         self.sender = sender
         self.futures = []
-        self.splitter()
+
+    @staticmethod
+    def write_image(current_frame, frame):
+        path = Path(IMAGES_PATH + '\\'+'frame' + str(current_frame) + '.jpg')
+        print('Creating...' + str(path))
+        # writing the extracted image
+        cv2.imwrite(str(path).replace('\\\\', '\\'), frame)
+        return path
+
+    @staticmethod
+    def file_reader(path):
+        with open(path, 'rb') as image:
+            image_bytes = image.read()
+        return image_bytes
 
     def splitter(self):
 
         # Read the video from specified path
         cam = cv2.VideoCapture(self.video_path)
-
-        try:
-
-            # creating a folder named data
-            if not os.path.exists('images'):
-                os.makedirs('images')
-
-            # if not created then raise error
-        except OSError:
-            print('Error: Creating directory of data')
-
+        PostSender.path_handler(IMAGES_PATH)
         # frame
-        currentframe = 0
-
-        while (True):
-
+        current_frame = 0
+        frame_left_in_video = True
+        while frame_left_in_video:
             # reading from frame
-            ret, frame = cam.read()
-
+            ret, frame = cam.read()  # TODO : figure out what ret means and change the name
             if ret:
                 # if video is still left continue creating images
-                path = './images/frame' + str(currentframe) + '.jpg'
-                name = Path(path).name
-                print('Creating...' + str(path))
-
-                # writing the extracted images
-                cv2.imwrite(path, frame)  # TODO: change to send image.
-                with open(path, 'rb') as image:
-                    self.futures.append(self.sender.send_post(name, image.read()))
-
+                # TODO: change to send image.
+                path = self.write_image(current_frame, frame)
+                image = self.file_reader(path)
+                self.futures.append(self.sender.send_post(path.name, image))
                 # increasing counter so that it will
-                # show how many frames are created
-                currentframe += 1
+                current_frame += 1
             else:
-                break
+                frame_left_in_video = False
 
-        # Release all space and windows once done
+    # Release all space and windows once done
         cam.release()
         cv2.destroyAllWindows()
         loop = asyncio.get_event_loop()
@@ -87,19 +74,30 @@ class PostSender(object):
                 name: image
             }) as response:
                 data = await response.content.read()
-                saving_path = RESIZED_BACK + '\\' + name
-                self.validate_path(saving_path)
+                resized_path = RESIZED_BACK
+                self.path_handler(resized_path)
+                saving_path = resized_path + '\\' + name
                 with open(saving_path, 'wb') as theyareback:
                     theyareback.write(data)
 
-    def validate_path(self, path):
-        c = Path(path)
-        c.mkdir(parents=True, exist_ok=True)
+    @staticmethod
+    def path_handler(path):
+        path = Path(path)
+        path.mkdir(parents=True, exist_ok=True)
 
 
-start_time = time.time()
-b = PostSender(URL)
-a = VideoSpliter(VIDEO_PATH, b)
+# todo : put in main
+
+def main():
+    start_time = time.time()
+    sender = PostSender(URL)
+    client = VideoSpliter(VIDEO_PATH, sender)
+    client.splitter()
+    print("----completed in %s seconds" % (time.time() - start_time))
+
+
+if __name__ == '__main__':
+    main()
 
 #
 # async def send_file(path1):
@@ -139,5 +137,3 @@ a = VideoSpliter(VIDEO_PATH, b)
 #
 #
 # set_future_right()
-
-print("----completed in %s seconds" % (time.time() - start_time))

@@ -8,16 +8,21 @@ from socketserver import ThreadingMixIn
 import time
 import json
 
-BASE_PATH = r'D:\pycharm\videoparser'
+BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
 SERVER_IMAGES = BASE_PATH + '\\' + 'server_images'
 RESIZE_PATH = BASE_PATH + '\\' + 'resized-images'
 
+
+def path_handler(path):
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
 
 def image_resize(imgpath):
     im = Image.open(imgpath)
     newsize = (1500, 300)
     im = im.resize(newsize)
     imgpath = Path(imgpath)
+    path_handler(RESIZE_PATH)
     resized_path = RESIZE_PATH + '\\' + imgpath.name
     im.save(resized_path)
     return resized_path
@@ -32,6 +37,7 @@ async def post_handler(request):
     content_length = int(request.headers['Content-Length'])  # <--- Gets the size of data
     avi_length = request.headers  # <--- Gets the size of data
     avi_defd = await request.read()
+    path_handler(SERVER_IMAGES)
     idx = str(avi_defd).find('filename=')
     end_quete_index = str(avi_defd).find('"', idx + 10)
     name = str(avi_defd)[idx + 10: end_quete_index]
