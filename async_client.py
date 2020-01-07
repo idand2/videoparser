@@ -1,35 +1,28 @@
 # Importing all necessary libraries
 import cv2
-import os
-import requests
 import time
 import asyncio
-import aiohttp
 from pathlib import Path
 from files_handler import FileHandler
 from path_handler import PathHandler
 from post_sender import PostSender
+import sys
+import datetime
 
-# URL = 'http://localhost:8090'
-URL = 'http://localhost:8080'
-# URL = 'http://localhost:5000'
-BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
+URL = 'http://localhost:8080/post'
+# BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
+BASE_PATH = r'D:\pycharm\videoparser'
 VIDEO_PATH = BASE_PATH + '\\' + 'video\\Mufasa.mp4'
-# VIDEO_PATH = r'D:\Photo\Mufasa.mp4'
-# BASE_PATH = r'D:\pycharm\videoparser'
 IMAGES_PATH = BASE_PATH + '\\' + 'images'
 RESULT_PATH = BASE_PATH + '\\' + 'Result'
 
 
-# for path, subddir, files in os.walk(args['folder']):
-#     for f_name in files:
-#         futures.append(send_file(path, f_name))
-
-
-class VideoSpliter(object):
-    def __init__(self, video_path):
+class VideoSplitter(object):
+    def __init__(self, video_path, result_path):
         self.video_path = video_path
+        self.result_path = result_path
         self.futures = []
+        PathHandler.ensure_existence(result_path)
         PathHandler.ensure_existence(IMAGES_PATH)
 
     @staticmethod
@@ -53,7 +46,7 @@ class VideoSpliter(object):
                 # TODO: change to send image.
                 path = self.write_frame(current_frame, frame)
                 image = FileHandler.read_bytes(path)
-                self.futures.append(PostSender.send_post(URL, path.name, image, RESULT_PATH))
+                self.futures.append(PostSender.send_post(URL, path.name, image, self.result_path))
                 # increasing counter so that it will
                 current_frame += 1
             else:
@@ -66,11 +59,23 @@ class VideoSpliter(object):
         loop.run_until_complete(asyncio.wait(self.futures))
 
 
+def run_test(number_of_instances, seconds_between_runs, video_path):
+    for instance_num in range(1, number_of_instances + 1):
+        print(datetime.datetime.now())
+        instance_result_dir = RESULT_PATH + str(instance_num)
+        # to make it different video add vid_path = sys.argv[3]
+        client = VideoSplitter(video_path, instance_result_dir)
+        client.splitter()
+        time.sleep(int(seconds_between_runs))
+
+
 def main():
+    n = int(sys.argv[1])
+    m = int(sys.argv[2])
+    vid_path = str(sys.argv[3])
     start_time = time.time()
-    client = VideoSpliter(VIDEO_PATH)
-    client.splitter()
-    print("----completed in %s seconds" % (time.time() - start_time))
+    run_test(n, m, vid_path)
+    print("----all instances are completed in %s seconds" % (time.time() - start_time))
 
 
 if __name__ == '__main__':
