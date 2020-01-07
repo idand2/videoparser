@@ -7,11 +7,13 @@ import asyncio
 import aiohttp
 from pathlib import Path
 
-URL = 'http://localhost:8090'
-#URL = 'http://localhost:5000'
+# URL = 'http://localhost:8090'
+URL = 'http://localhost:8080'
+# URL = 'http://localhost:5000'
 VIDEO_PATH = r'D:\Photo\Mufasa.mp4'
 BASE_PATH = r'D:\pycharm\videoparser'
 IMAGES_PATH = BASE_PATH + '\\' + 'images'
+RESIZED_BACK = BASE_PATH + '\\' + 'Back'
 
 
 # for path, subddir, files in os.walk(args['folder']):
@@ -82,10 +84,17 @@ class PostSender(object):
     async def send_post(self, name, image):
         async with aiohttp.ClientSession() as session:
             async with session.post(URL, data={
-                name : image
+                name: image
             }) as response:
-                data = await response.text()
-                print(data)
+                data = await response.content.read()
+                saving_path = RESIZED_BACK + '\\' + name
+                self.validate_path(saving_path)
+                with open(saving_path, 'wb') as theyareback:
+                    theyareback.write(data)
+
+    def validate_path(self, path):
+        c = Path(path)
+        c.mkdir(parents=True, exist_ok=True)
 
 
 start_time = time.time()
