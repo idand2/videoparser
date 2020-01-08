@@ -3,9 +3,10 @@ import cv2
 import time
 import asyncio
 from pathlib import Path
-from files_handler import FileHandler
 from path_handler import PathHandler
 from post_handler import PostHandler
+import logging
+
 import sys
 import datetime
 
@@ -95,7 +96,9 @@ def main():
     client = VideoSplitter(VIDEO_PATH, RESULT_PATH)
     client.split_to_frames()
     client.start_async_loop()
-    print("----completed in %s seconds" % (time.time() - start_time))
+    logging.basicConfig(filename="anyvision.log", filemode='w', level=logging.DEBUG, format="[%(asctime)s] [%(levelname)s] [%(message)s]")
+    logging.info("Completed in %s seconds" % str(time.time() - start_time)[:4])
+    # print("----completed in %s seconds" % (time.time() - start_time))
 
 
 # def main():
