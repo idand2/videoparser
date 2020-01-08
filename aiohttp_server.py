@@ -5,7 +5,7 @@ BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
 # BASE_PATH = r'D:\pycharm\videoparser'
 SERVER_IMAGES = BASE_PATH + '\\' + 'server_images'
 RESIZE_PATH = BASE_PATH + '\\' + 'resized-images'
-NEW_SIZE = (1500, 300)
+IMAGE_NEW_IMAGE = (1500, 300)
 
 
 class AsyncServer(object):
@@ -22,7 +22,7 @@ class AsyncServer(object):
         """
         request_content = await request.read()
         temp_image_name, temp_image_bytes = self.parse_request(request_content)
-        resized_image = ImageHandler.image_resize(temp_image_bytes, NEW_SIZE)
+        resized_image = ImageHandler.image_resize(temp_image_bytes, IMAGE_NEW_IMAGE)
         return web.Response(body=resized_image)
 
     @staticmethod

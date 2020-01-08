@@ -1,6 +1,7 @@
 import cv2
 import numpy
 
+
 FILE_TYPE = '.jpg'
 
 
@@ -12,6 +13,7 @@ class ImageHandler(object):
         @param image_string: an image reformatted as string
         @return: Image object
         """
+
         nparr = numpy.fromstring(image_string, numpy.uint8)
         image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         return image
