@@ -3,8 +3,8 @@ from files_handler import FileHandler
 from image_handler import ImageHandler
 from path_handler import PathHandler
 
-# BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
-BASE_PATH = r'D:\pycharm\videoparser'
+BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
+# BASE_PATH = r'D:\pycharm\videoparser'
 SERVER_IMAGES = BASE_PATH + '\\' + 'server_images'
 RESIZE_PATH = BASE_PATH + '\\' + 'resized-images'
 NEW_SIZE = (1500, 300)
@@ -16,15 +16,23 @@ class AsyncServer(object):
     async def get_handler(request):
         return web.Response(text="Hey, i'm here for post requests. post me an image and get it in 500X1500")
 
-    async def post_handler(self, request):
-        PathHandler.ensure_existence(SERVER_IMAGES)
-        PathHandler.ensure_existence(RESIZE_PATH)
-        request_content = await request.read()
-        name, pic = self.parse_request(request_content)
+    @staticmethod
+    def validate_initial_path():
+        PathHandler.ensure_existences(RESIZE_PATH, SERVER_IMAGES)
+
+    @staticmethod
+    def create_temp_image(name, pic):
         path = SERVER_IMAGES + '\\' + name
         FileHandler.write_bytes(path, pic)
-        resized_path = ImageHandler.image_resize(path, name, NEW_SIZE, RESIZE_PATH)
-        resized_image = FileHandler.read_bytes(resized_path)
+        return path
+
+    async def post_handler(self, request):
+        self.validate_initial_path()
+        request_content = await request.read()
+        temp_image_name, temp_image_bytes = self.parse_request(request_content)
+        temp_image_path = self.create_temp_image(temp_image_name, temp_image_bytes)
+        resized_image_path = ImageHandler.image_resize(temp_image_path, temp_image_name, NEW_SIZE, RESIZE_PATH)
+        resized_image = FileHandler.read_bytes(resized_image_path)
         return web.Response(body=resized_image)
 
     @staticmethod
