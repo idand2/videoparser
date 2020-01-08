@@ -45,9 +45,9 @@ class VideoSplitter(object):
         cv2.imwrite(str(image_path).replace('\\\\', '\\'), frame)
         return image_path
 
-    def create_futures(self, image_path, result_path):
-        image = FileHandler.read_bytes(image_path)
-        self.futures.append(PostSender.send_post(URL, image_path.name, image, result_path))
+    def create_futures(self, name, image, result_path):
+        # image = FileHandler.read_bytes(image_path)
+        self.futures.append(PostSender.send_post(URL, name, image, result_path))
 
     def start_async_loop(self):
         loop = asyncio.get_event_loop()
@@ -68,8 +68,10 @@ class VideoSplitter(object):
             if frame_left:
                 # If video is still left continue creating images
                 # TODO: change to send image.
-                image_path = self.write_frame(current_frame, frame)
-                self.create_futures(image_path, self.result_path)
+                # image_path = self.write_frame(current_frame, frame)
+                image_path = Path(IMAGES_PATH + '\\' + 'frame' + str(current_frame) + '.jpg')
+                img_str = cv2.imencode('.jpg', frame)[1].tostring()
+                self.create_futures(image_path.name, img_str, self.result_path)
                 # increasing counter so that it will
                 current_frame += 1
             else:

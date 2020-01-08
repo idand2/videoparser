@@ -30,9 +30,12 @@ class AsyncServer(object):
         self.validate_initial_path()
         request_content = await request.read()
         temp_image_name, temp_image_bytes = self.parse_request(request_content)
-        temp_image_path = self.create_temp_image(temp_image_name, temp_image_bytes)
-        resized_image_path = ImageHandler.image_resize(temp_image_path, temp_image_name, NEW_SIZE, RESIZE_PATH)
-        resized_image = FileHandler.read_bytes(resized_image_path)
+        with open(BASE_PATH+'\\avi.jpg', 'wb') as file:
+            file.write(temp_image_bytes)
+        #temp_image_path = self.create_temp_image(temp_image_name, temp_image_bytes)
+        #resized_image_path = ImageHandler.image_resize(temp_image_path, temp_image_name, NEW_SIZE, RESIZE_PATH)
+        #resized_image = FileHandler.read_bytes(resized_image_path)
+        resized_image = ImageHandler.image_resize(temp_image_bytes, NEW_SIZE)
         return web.Response(body=resized_image)
 
     @staticmethod
