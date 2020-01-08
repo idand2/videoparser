@@ -1,11 +1,7 @@
 from aiohttp import web
 from image_handler import ImageHandler
 
-BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
-# BASE_PATH = r'D:\pycharm\videoparser'
-SERVER_IMAGES = BASE_PATH + '\\' + 'server_images'
-RESIZE_PATH = BASE_PATH + '\\' + 'resized-images'
-IMAGE_NEW_IMAGE = (1500, 300)
+IMAGE_NEW_SIZE = (1500, 300)
 
 
 class AsyncServer(object):
@@ -22,7 +18,7 @@ class AsyncServer(object):
         """
         request_content = await request.read()
         temp_image_name, temp_image_bytes = self.parse_request(request_content)
-        resized_image = ImageHandler.image_resize(temp_image_bytes, IMAGE_NEW_IMAGE)
+        resized_image = ImageHandler.image_resize(temp_image_bytes, IMAGE_NEW_SIZE)
         return web.Response(body=resized_image)
 
     @staticmethod
@@ -41,9 +37,12 @@ class AsyncServer(object):
 
 
 def main():
+    """
+    initiate the server using aiohttp.web
+    """
     server = AsyncServer()
     app = web.Application()
-    app.add_routes([web.post('/post', server.post_handler)])
+    app.add_routes([web.get('/', server.get_handler), web.post('/post', server.post_handler)])
     web.run_app(app)
 
 

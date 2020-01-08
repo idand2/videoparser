@@ -2,8 +2,6 @@ from path_handler import PathHandler
 import aiohttp
 from files_handler import FileHandler
 
-URL = 'http://localhost:8080/post'
-
 
 class PostHandler(object):
     @staticmethod

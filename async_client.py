@@ -1,22 +1,21 @@
-# Importing all necessary libraries
 import cv2
 import time
 import asyncio
-from pathlib import Path
 from path_handler import PathHandler
 from post_handler import PostHandler
 import logging
-
-import sys
-import datetime
+import platform
 
 URL = 'http://localhost:8080/post'
-BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
-# BASE_PATH = r'D:\pycharm\videoparser'
-VIDEO_PATH = BASE_PATH + '\\' + 'video\\Mufasa.mp4'
-IMAGES_PATH = BASE_PATH + '\\' + 'images'
-RESULT_PATH = BASE_PATH + '\\' + 'Result'
+# BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
+WIN_BASE_PATH = r'D:\pycharm\videoparser'
+# WIN_BASE_PATH = r'C:\temp\videoparser'
+LINUX_BASE_PATH = '/etc/temp/'
+LINUX_RESULT_PATH = LINUX_BASE_PATH + '/Results'
+WIN_VIDEO_PATH = WIN_BASE_PATH + '\\' + 'video\\Mufasa.mp4'
+LINUX_VIDEO_PATH = LINUX_BASE_PATH + '/video/Mufasa.mp4'
 FILE_TYPE = '.jpg'
+WIN_RESULT_PATH = WIN_BASE_PATH + '\\' + 'Results'
 
 
 class VideoSplitter(object):
@@ -67,9 +66,9 @@ class VideoSplitter(object):
             # Checks if no frames has been grabbed.
             if frame_left:
                 # If video is still left continue creating images
-                image_path = Path(IMAGES_PATH + '\\' + 'frame' + str(current_frame) + '.jpg')
+                frame_name = ('frame' + str(current_frame) + '.jpg')
                 img_str = cv2.imencode('.jpg', frame)[1].tostring()
-                self.create_future_task(image_path.name, img_str, self.result_path)
+                self.create_future_task(frame_name, img_str, self.result_path)
                 # increasing counter so that it will
                 current_frame += 1
             else:
@@ -80,34 +79,34 @@ class VideoSplitter(object):
         cv2.destroyAllWindows()
 
 
-# def run_test(number_of_instances, seconds_between_runs, video_path):
-#     for instance_num in range(1, number_of_instances + 1):
-#         print(datetime.datetime.now())
-#         instance_result_dir = RESULT_PATH + str(instance_num)
-#         # to make it different video add vid_path = sys.argv[3]
-#         client = VideoSplitter(video_path, instance_result_dir)
-#         asyncio.run(client.splitter())
-#         time.sleep(int(seconds_between_runs))
-#         print(datetime.datetime.now())
-#
+def is_linux():
+    """
+    check if the type of the os is linux.
+    :return: Boolean.
+    """
+    os = platform.system()
+    if 'Linux' == os:
+        return True
+
+    elif 'Windows' == os:
+        return False
+
 
 def main():
+    """
+    initiate client, log total runtime to file.
+    :return:
+    """
     start_time = time.time()
-    client = VideoSplitter(VIDEO_PATH, RESULT_PATH)
+    if is_linux():
+        client = VideoSplitter(LINUX_VIDEO_PATH, LINUX_RESULT_PATH)
+    else:
+        client = VideoSplitter(WIN_VIDEO_PATH, WIN_RESULT_PATH)
     client.split_to_frames()
     client.start_async_loop()
-    logging.basicConfig(filename="anyvision.log", filemode='w', level=logging.DEBUG, format="[%(asctime)s] [%(levelname)s] [%(message)s]")
+    logging.basicConfig(filename="anyvision.log", filemode='w', level=logging.DEBUG,
+                        format="[%(asctime)s] [%(levelname)s] [%(message)s]")
     logging.info("Completed in %s seconds" % str(time.time() - start_time)[:4])
-    # print("----completed in %s seconds" % (time.time() - start_time))
-
-
-# def main():
-#     n = int(sys.argv[1])
-#     m = int(sys.argv[2])
-#     vid_path = str(sys.argv[3])
-#     start_time = time.time()
-#     run_test(n, m, vid_path)
-#     print("----all instances are completed in %s seconds" % (time.time() - start_time))
 
 
 if __name__ == '__main__':
