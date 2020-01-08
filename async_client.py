@@ -33,7 +33,7 @@ class VideoSplitter(object):
         cv2.imwrite(str(path).replace('\\\\', '\\'), frame)
         return path
 
-    def splitter(self):
+    async def splitter(self):
         # Read the video from specified path
         cam = cv2.VideoCapture(self.video_path)
         current_frame = 0
@@ -55,8 +55,9 @@ class VideoSplitter(object):
         # Release all space and windows once done
         cam.release()
         cv2.destroyAllWindows()
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.wait(self.futures))
+        return self.futures
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.wait(futures))
 
 
 def run_test(number_of_instances, seconds_between_runs, video_path):
@@ -65,8 +66,9 @@ def run_test(number_of_instances, seconds_between_runs, video_path):
         instance_result_dir = RESULT_PATH + str(instance_num)
         # to make it different video add vid_path = sys.argv[3]
         client = VideoSplitter(video_path, instance_result_dir)
-        client.splitter()
+        asyncio.run(client.splitter())
         time.sleep(int(seconds_between_runs))
+        print(datetime.datetime.now())
 
 
 def main():
