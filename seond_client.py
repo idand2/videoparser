@@ -5,7 +5,7 @@ import asyncio
 from pathlib import Path
 from files_handler import FileHandler
 from path_handler import PathHandler
-from post_sender import PostSender
+from post_handler import PostHandler
 import sys
 import datetime
 
@@ -44,7 +44,7 @@ class VideoSplitter(object):
 
     def create_futures(self, image_path, result_path):
         image = FileHandler.read_bytes(image_path)
-        self.futures.append(PostSender.send_post(URL, image_path.name, image, result_path))
+        self.futures.append(PostHandler.send_post(URL, image_path.name, image, result_path))
 
     def splitter(self):
         # Read the video from specified path

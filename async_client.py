@@ -5,7 +5,7 @@ import asyncio
 from pathlib import Path
 from files_handler import FileHandler
 from path_handler import PathHandler
-from post_sender import PostSender
+from post_handler import PostHandler
 import sys
 import datetime
 
@@ -31,12 +31,24 @@ class VideoSplitter(object):
         self.validate_initial_path()
 
     def validate_initial_path(self):
+        """
+        make sure that the path entered exists, if not creates it recursively
+        """
         PathHandler.ensure_existences(self.result_path)
 
     def create_future_task(self, name, image, result_path):
-        self.tasks.append(PostSender.send_post(URL, name, image, result_path))
+        """
+        appends a task to a list
+        @param name: str, the name of the image.
+        @param image: str, image file formatted to str.
+        @param result_path: the path to saved the response resized image.
+        """
+        self.tasks.append(PostHandler.handle_post(URL, name, image, result_path))
 
     def start_async_loop(self):
+        """
+        start an async loop in order to initiate all tasks .
+        """
         loop = asyncio.get_event_loop()
         loop.run_until_complete(asyncio.wait(self.tasks))
 
