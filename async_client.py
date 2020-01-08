@@ -15,6 +15,7 @@ BASE_PATH = r'C:\Users\Omer Dayan\PycharmProjects\videoparser'
 VIDEO_PATH = BASE_PATH + '\\' + 'video\\Mufasa.mp4'
 IMAGES_PATH = BASE_PATH + '\\' + 'images'
 RESULT_PATH = BASE_PATH + '\\' + 'Result'
+FILE_TYPE = '.jpg'
 
 
 class VideoSplitter(object):
@@ -26,32 +27,18 @@ class VideoSplitter(object):
     def __init__(self, video_path, result_path):
         self.video_path = video_path
         self.result_path = result_path
-        self.futures = []
+        self.tasks = []
         self.validate_initial_path()
 
     def validate_initial_path(self):
-        PathHandler.ensure_existences(self.result_path, IMAGES_PATH)
+        PathHandler.ensure_existences(self.result_path)
 
-    @staticmethod
-    def write_frame(current_frame, frame):
-        """
-        Writing result frame as bytes.
-        @param current_frame: int, for naming.
-        @param frame: Image, contains the data to be written
-        @return path: Path, the path of the saved image.
-        """
-        image_path = Path(IMAGES_PATH + '\\' + 'frame' + str(current_frame) + '.jpg')
-        print('Creating...' + str(image_path))  # TODO: logger
-        cv2.imwrite(str(image_path).replace('\\\\', '\\'), frame)
-        return image_path
-
-    def create_futures(self, name, image, result_path):
-        # image = FileHandler.read_bytes(image_path)
-        self.futures.append(PostSender.send_post(URL, name, image, result_path))
+    def create_future_task(self, name, image, result_path):
+        self.tasks.append(PostSender.send_post(URL, name, image, result_path))
 
     def start_async_loop(self):
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.wait(self.futures))
+        loop.run_until_complete(asyncio.wait(self.tasks))
 
     def split_to_frames(self):
         """
@@ -67,11 +54,9 @@ class VideoSplitter(object):
             # Checks if no frames has been grabbed.
             if frame_left:
                 # If video is still left continue creating images
-                # TODO: change to send image.
-                # image_path = self.write_frame(current_frame, frame)
                 image_path = Path(IMAGES_PATH + '\\' + 'frame' + str(current_frame) + '.jpg')
                 img_str = cv2.imencode('.jpg', frame)[1].tostring()
-                self.create_futures(image_path.name, img_str, self.result_path)
+                self.create_future_task(image_path.name, img_str, self.result_path)
                 # increasing counter so that it will
                 current_frame += 1
             else:
@@ -80,7 +65,6 @@ class VideoSplitter(object):
         # Release all space and windows once done
         video.release()
         cv2.destroyAllWindows()
-        # return self.futures
 
 
 # def run_test(number_of_instances, seconds_between_runs, video_path):
@@ -99,7 +83,6 @@ def main():
     client = VideoSplitter(VIDEO_PATH, RESULT_PATH)
     client.split_to_frames()
     client.start_async_loop()
-    # PostSender.start_looper(a)
     print("----completed in %s seconds" % (time.time() - start_time))
 
 
